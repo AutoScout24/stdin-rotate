@@ -8,9 +8,11 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"log/syslog"
 	"os"
 	"os/signal"
 	"path"
+	"regexp"
 	"sort"
 	"strings"
 	"sync"
@@ -18,10 +20,14 @@ import (
 )
 
 var (
-	compressOld = flag.Bool("gzip", true, "Gzip old files")
-	outputFile  = flag.String("output", "./output.log", "Output file")
-	maxFiles    = flag.Int("max-files", 5, "Maximum files to preserve")
-	maxFileSize = flag.Int("max-size", 10*1024*1024, "Maximum file size")
+	compressOld    = flag.Bool("gzip", true, "Gzip old files")
+	outputFile     = flag.String("output", "./output.log", "Output file")
+	maxFiles       = flag.Int("max-files", 5, "Maximum files to preserve")
+	maxFileSize    = flag.Int("max-size", 10*1024*1024, "Maximum file size")
+	syslogTarget   = flag.String("syslog-target", "", "Syslog server:port to send --syslog-regexp matching lines")
+	syslogRegexp   = flag.String("syslog-regexp", "", "Regular expression to match lines against to send them to syslog server")
+	syslogPriority = flag.Int("syslog-priority", int(syslog.LOG_NOTICE|syslog.LOG_LOCAL2), "Syslog priority")
+	syslogTag      = flag.String("syslog-tag", "stdin-rotate", "Syslog tag")
 )
 
 func main() {
@@ -32,6 +38,10 @@ func main() {
 		flag.PrintDefaults()
 	}
 	flag.Parse()
+
+	if (*syslogTarget != "" && *syslogRegexp == "") || (*syslogTarget == "" && *syslogRegexp != "") {
+		log.Fatalln("Syslog Server and Regexp must be specified together")
+	}
 
 	var appender Appender
 	appender.lastFileChan = make(chan string, 100)
@@ -49,12 +59,15 @@ func main() {
 	appender.wg.Wait()
 }
 
+// Appender is the type responsible for appending and rotating files
 type Appender struct {
 	file         *os.File
 	filePath     string
 	writer       *bufio.Writer
 	bytesWritten int
 	closed       bool
+	syslog       *syslog.Writer
+	regexp       *regexp.Regexp
 
 	wg           sync.WaitGroup
 	lastFileChan chan string
@@ -86,6 +99,18 @@ func (s *Appender) openFile() {
 		log.Fatalln("ERROR", err)
 	}
 	s.bytesWritten = int(st.Size())
+
+	if *syslogTarget != "" && *syslogRegexp != "" {
+		s.syslog, err = syslog.Dial("udp", *syslogTarget, syslog.Priority(*syslogPriority), *syslogTag)
+		if err != nil {
+			log.Fatalln("ERROR: cannot connect to syslog server:", err)
+		}
+
+		s.regexp, err = regexp.Compile(*syslogRegexp)
+		if err != nil {
+			log.Fatalln("ERROR: cannot compile syslog regexp:", err)
+		}
+	}
 }
 
 func (s *Appender) closeFile() {
@@ -167,11 +192,19 @@ func (s *Appender) archiveFileName() string {
 	return s.filePath + "_" + ts
 }
 
+// Append inserts line at the end of file and asks file to be rotated
+// if it is too big
 func (s *Appender) Append(line string) {
 	if s.bytesWritten >= *maxFileSize {
 		s.rotateFile()
 	}
 	n, _ := s.writer.WriteString(line)
+	if s.syslog != nil && s.regexp != nil {
+		byteline := []byte(line)
+		if s.regexp.Match(byteline) {
+			s.syslog.Write(byteline)
+		}
+	}
 	s.writer.WriteByte('\n')
 
 	s.bytesWritten += n + 1
