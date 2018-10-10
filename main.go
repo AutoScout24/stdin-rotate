@@ -49,6 +49,7 @@ func main() {
 	appender.wg.Wait()
 }
 
+// Appender is the type responsible for appending and rotating files
 type Appender struct {
 	file         *os.File
 	filePath     string
@@ -167,6 +168,8 @@ func (s *Appender) archiveFileName() string {
 	return s.filePath + "_" + ts
 }
 
+// Append inserts line at the end of file and asks file to be rotated
+// if it is too big
 func (s *Appender) Append(line string) {
 	if s.bytesWritten >= *maxFileSize {
 		s.rotateFile()
