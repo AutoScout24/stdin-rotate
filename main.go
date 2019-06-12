@@ -18,10 +18,11 @@ import (
 )
 
 var (
-	compressOld = flag.Bool("gzip", true, "Gzip old files")
-	outputFile  = flag.String("output", "./output.log", "Output file")
-	maxFiles    = flag.Int("max-files", 5, "Maximum files to preserve")
-	maxFileSize = flag.Int("max-size", 10*1024*1024, "Maximum file size")
+	compressOld   = flag.Bool("gzip", true, "Gzip old files")
+	outputFile    = flag.String("output", "./output.log", "Output file")
+	maxFiles      = flag.Int("max-files", 5, "Maximum files to preserve")
+	maxFileSize   = flag.Int("max-size", 10*1024*1024, "Maximum file size")
+	maxLineLength = flag.Int("max-length", 100*1024, "Maximum line length")
 )
 
 func main() {
@@ -41,6 +42,8 @@ func main() {
 	go appender.manageFiles()
 
 	scanner := bufio.NewScanner(os.Stdin)
+	buf := make([]byte, *maxLineLength)
+	scanner.Buffer(buf, *maxLineLength)
 	for scanner.Scan() && !appender.closed {
 		line := scanner.Text()
 		appender.Append(line)
