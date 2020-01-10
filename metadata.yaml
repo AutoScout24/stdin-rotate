@@ -1,0 +1,121 @@
+# The metadata file describes the purpose of a VCS repository.
+
+# Unique identifier of this service. Must be machine-usable. A good source for the
+# id is the repository name, as this is already unique.
+#
+#   Type:    string
+#   Pattern: ^[a-z0-9]+(?:[-_][a-z0-9]+)*$
+#
+# id: foo-bar-app
+#
+id: as24-lstdin-rotate
+
+# A short and meaningful name of this service
+#
+#   Type:    string
+#
+# name: Foo Bar App
+#
+name: as24-lstdin-rotate
+
+# Human readable definition of what this repository provides, how it can be
+# accessed and used. Everything you wish to convey to anyone who discovers this
+# repository.
+#
+#   Type:    string
+#
+# description: The Foo service delivers Bar metrics to DataDog for the Baz team
+#
+description: Its a small tool that redirects its stdin to an output file, rotating and compressing it as specified by the configuration flags.
+
+# The type describes the primary intended purpose of this repository. A repository
+# may contain additional content with a different purpose (e.g. a
+# documentation-type repository which contains code to deploy this repository is
+# still a considered a documentation-type repository).
+#
+#   Type:    string
+#   Enum:    application, configuration, data, documentation, ignore, library,
+#            misc
+#
+# type: application
+#
+type: misc
+
+# The state within it's lifecycle the service is currently in.
+#
+#   Type:    string
+#   Pattern: ^(preview|ga|maintenance|eol 2[10][0-9]{2}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01]))$
+#
+# lifecycle: ga
+#
+lifecycle: ga
+
+# Confidentiality classifies the sensitivity of the data this service contains,
+# works with or works on. This roughly translates to how big the impact is when
+# the data is *breached*. The value is made available by the HoT (or HoP) and
+# specified in the Information Security Objectives Policy:
+# https://gs24.sharepoint.com/risk_compliance_en/Policies/Information%20Security%20Objectives%20-%20Policy.pdf.
+#
+#   Type:    string
+#   Enum:    public, company-internal, company-internal-standard-pii,
+#            company-confidential, company-confidential-sensitive-pii
+#
+# confidentiality: company-internal
+#
+confidentiality: public
+
+
+# Integrity is either critical (=true) or non-critical (=false). Critical means:
+# If the data provided by this service is *wrong* (or not correct for longer than
+# a day) then a core business process is negatively affected. For example: If
+# financial data is wrong, then resulting reporting is wrong, which affects
+# multiple core business processes. The value is made available by the HoT (or
+# HoP) and specified in the Information Security Objectives Policy:
+# https://gs24.sharepoint.com/risk_compliance_en/Policies/Information%20Security%20Objectives%20-%20Policy.pdf.
+#
+#   Type:    boolean
+#
+# integrity: true
+#
+integrity: false
+
+# The Scout24 vertical this repository *is used by*. If used by multiple
+# verticals: choose `s24`.
+#
+#   Type:    string
+#   Enum:    as24, cs24, is24, s24
+#
+# vertical: s24
+#
+vertical: as24
+
+# One or multiple mail addresses of *organizations* owning this service. Usually
+# the mail distribution list address of the owning team.
+#
+#   Type:    array
+#
+# owners:
+#   - S24-YOUR-TEAM-ds@scout24.com
+#
+owners:
+  - dlm@scout24.com
+
+# Name of the infrastructure/platform this service is deployed to and runs in.
+#
+#   Type:    string
+#   Enum:    aws, datacenter, gcp, saas
+#
+# platform: aws
+#
+platform: datacenter
+
+# List of additional keywords which describe the contents of this repository for
+# search purposes.
+#
+#   Type:    array
+#
+# tags:
+#   - foo-related
+#
+tags:
+  - CSharp
