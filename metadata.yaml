@@ -119,3 +119,7 @@ platform: datacenter
 #
 tags:
   - CSharp
+  
+product: tooling
+
+availability: false
