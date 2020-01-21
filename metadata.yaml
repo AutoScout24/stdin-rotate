@@ -39,7 +39,7 @@ description: Its a small tool that redirects its stdin to an output file, rotati
 #
 # type: application
 #
-type: misc
+type: library
 
 # The state within it's lifecycle the service is currently in.
 #
@@ -119,3 +119,7 @@ platform: datacenter
 #
 tags:
   - CSharp
+  
+product: tooling
+
+availability: false
